@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "id": "33333333333343338333333333333333",
+  "session": "20260101-1200-demo-collab-1a2b3c4d",
+  "ts": 1767268920000,
+  "from": "agent-b",
+  "to": "writer",
+  "thread": "11111111111141118111111111111111",
+  "in_reply_to": "11111111111141118111111111111111",
+  "body": "Problem: the toy client rejected an item returned by discovery.\nAttempt: corrected the fixture field name.\nObservation: the same client then accepted that item.\nEvidence: fictional repo-b/tests/client_test.py at commit abcdef0.\nUncertainty: this could be unrelated to agent-a's timing problem."
+}

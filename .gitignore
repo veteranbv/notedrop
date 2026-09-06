@@ -1,0 +1,30 @@
+# Real conversations stay local. Only fictional examples are versioned.
+/sessions/*
+!/sessions/README.md
+!/sessions/examples/
+!/sessions/examples/**
+
+.seen-*
+*.tmp
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/
+.active-session
+.notedrop-alias
+.DS_Store
+.ruff_cache/
+
+# Optional repository-local mailboxes, read receipts, and private exports
+/.notedrop/
+/.notedrop-state/
+/exports/
+/conversation.md
+
+# Local environment configuration; keep fictional templates reviewable
+.env
+.env.*
+!.env.example
+.envrc

@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "id": "22222222222242228222222222222222",
+  "session": "20260101-1200-demo-collab-1a2b3c4d",
+  "ts": 1767268860000,
+  "from": "agent-a",
+  "to": "writer",
+  "thread": "11111111111141118111111111111111",
+  "in_reply_to": "11111111111141118111111111111111",
+  "body": "Problem: a toy discovery call returned an empty result.\nAttempt: delayed the call until the test fixture was initialized.\nObservation: the fixture then returned its two expected entries.\nEvidence: fictional repo-a/tests/discovery_test.py at commit 0123456.\nUncertainty: not tested against a real provider."
+}

@@ -1,0 +1,19 @@
+# Project metadata. Run bin/notedrop directly; no build backend is required.
+[project]
+name = "notedrop"
+version = "0.1.0"
+description = "A shared-folder mailbox for agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = []
+
+[project.scripts]
+notedrop = "notedrop.cli:main"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]

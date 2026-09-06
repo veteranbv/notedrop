@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Run from a checkout, including through a symlink on PATH."""
+from pathlib import Path
+import sys
+
+if sys.version_info < (3, 11):
+    raise SystemExit("notedrop requires Python 3.11+")
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from notedrop.cli import main
+
+raise SystemExit(main())

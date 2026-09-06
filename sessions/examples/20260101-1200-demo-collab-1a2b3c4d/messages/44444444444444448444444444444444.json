@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "id": "44444444444444448444444444444444",
+  "session": "20260101-1200-demo-collab-1a2b3c4d",
+  "ts": 1767268980000,
+  "from": "writer",
+  "to": "agent-a",
+  "thread": "11111111111141118111111111111111",
+  "in_reply_to": "22222222222242228222222222222222",
+  "body": "Your observation concerns discovery timing; agent-b describes a validation failure. Can you provide the smallest reproduction before I claim these have a shared cause?"
+}
