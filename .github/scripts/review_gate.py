@@ -155,9 +155,7 @@ class Finding:
     title: str
 
 
-# GitHub's API intermittently fails during incidents (2026-06-10: transient
-# GraphQL 401s crashed three gate runs on PR #83). A required check must not
-# go red on a single blip, so gh_api retries with backoff before raising.
+# Retry transient GitHub API failures with backoff before failing the check.
 GH_API_RETRY_DELAYS: Final = (10, 30, 60)
 
 

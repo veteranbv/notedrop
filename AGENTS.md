@@ -57,7 +57,7 @@ mailboxes, credentials, or provider chat histories.
 
 For CI changes, also run `python3 -m unittest discover -s .github/scripts -v`,
 `python3 .github/scripts/check_workflow_pinning.py`, and `actionlint`.
-See docs/ci.md for the exact-commit Codex gate and required GitHub settings.
+See docs/ci.md for the exact-commit Codex gate and contribution requirements.
 
 Do not add provider integrations, background polling, global shell changes,
 or mutable shared indexes. Do not commit real session traffic. Check ignore
