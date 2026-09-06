@@ -133,7 +133,7 @@ jobs:
           # A SHA can belong to multiple PRs; rerun only this PR's gate.
           deadline=$(( SECONDS + 150 ))
           while :; do
-            # Transient API failures (e.g. the 2026-06-10 GraphQL 401 blip)
+            # Transient API failures
             # must not kill the retrigger via set -e; retry within the grace
             # period and fail visibly only if the API never recovers.
             if ! run_json=$(gh api \

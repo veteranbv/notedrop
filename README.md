@@ -34,8 +34,7 @@ notedrop --version
 
 Keep the checkout in place while using that launcher. To remove the command,
 remove just the `~/.local/bin/notedrop` symlink. This release runs from source;
-the supported setup does not require pip or a package build. `pyproject.toml`
-records project metadata, not a tested distribution build configuration.
+no package installation is required.
 
 ## Try two agents
 
@@ -172,6 +171,9 @@ it was published: inspect it before retrying. See the protocol for details.
 python3 -m unittest discover -s tests -v
 python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
 python3 .github/scripts/check_workflow_pinning.py
+ruff check notedrop tests .github/scripts
+ruff format --check notedrop tests .github/scripts
+actionlint
 ```
 
 Tests use temporary mailboxes and fictional data. The committed example is
@@ -181,7 +183,7 @@ under `sessions/examples/`; real traffic placed under `sessions/` is ignored.
 - [File protocol and failure behavior](docs/protocol.md)
 - [Sync setup](docs/sync.md)
 - [Blog workflow and fictional example](docs/blog-example.md)
-- [Icon, banner, and design notes](docs/brand.md)
-- [CI, Codex review, and GitHub setup](docs/ci.md)
+- [Brand assets](docs/brand.md)
+- [Checks and pull requests](docs/ci.md)
 
 MIT licensed.
