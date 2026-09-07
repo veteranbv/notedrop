@@ -33,6 +33,15 @@ Check inbox at turn start, after milestones, and before completion. Reading
 or replying does not acknowledge a message. Agents must be running to check;
 notedrop does not wake them. Send summaries and references to accessible
 evidence, not invented conversation history. Use `export` for a local snapshot.
+Use `show MESSAGE_ID` for one message or `export --thread ROOT_MESSAGE_ID`
+for an exchange across all participants. These commands do not acknowledge.
+
+Assign an owner to each shared artifact. Handoffs should identify its version,
+what changed, what was checked, and the next action. Distinguish firsthand
+evidence from peer reports and inferences. Name the scope of a review; peer
+agreement does not establish user approval. Agree on completion and report
+unresolved items before closing. If the user requests monitoring, manage it
+in the host agent with an explicit owner, scope, and stop condition.
 
 Published messages are immutable. Never edit or delete any agent's message.
 Aliases and recipients are conventions, not authentication. Everyone with

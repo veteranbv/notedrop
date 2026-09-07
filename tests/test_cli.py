@@ -83,6 +83,83 @@ class CLITest(unittest.TestCase):
         self.assertFalse((self.root / "mail" / "active").exists())
         self.assertFalse((self.root / "state").exists())
 
+    def test_show_reads_any_message_without_identity_or_receipts(self):
+        body = "First line\nSecond line\x1b[2J"
+        sent = json.loads(
+            self.run_cli("--as", "alice", "send", "bob", "--stdin", "--json", data=body).stdout
+        )
+        messages = self.root / "mail" / "sessions" / self.session / "messages"
+        original = messages / f"{sent['id']}.json"
+        before = original.read_bytes()
+        # Sync providers can rename copies; lookup must use the validated record ID.
+        original.rename(messages / "provider-copy.json")
+        self.assertEqual(json.loads(self.run_cli("show", sent["id"], "--json").stdout), sent)
+        human = self.run_cli("--as", "observer", "show", sent["id"]).stdout
+        self.assertNotIn("\x1b", human)
+        self.assertIn("\\x1b", human)
+        self.assertEqual((messages / "provider-copy.json").read_bytes(), before)
+        self.assertFalse((self.root / "state").exists())
+        self.assertEqual(json.loads(self.run_cli("--as", "bob", "inbox", "--json").stdout), [sent])
+
+    def test_show_missing_invalid_and_conflicted_ids(self):
+        self.run_cli("show", "../escape", code=2)
+        missing = self.run_cli("show", "0" * 32, "--json", code=2)
+        self.assertEqual(missing.stdout, "")
+        self.assertIn("missing, invalid, or conflicted", missing.stderr)
+        sent = json.loads(self.run_cli("--as", "alice", "send", "bob", "Original", "--json").stdout)
+        messages = self.root / "mail" / "sessions" / self.session / "messages"
+        (messages / "conflict.json").write_text(json.dumps(dict(sent, body="Different")))
+        result = self.run_cli("show", sent["id"], "--json", code=2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("Conflicting contents", result.stderr)
+
+    def test_thread_export_filters_both_directions_and_keeps_order(self):
+        root = json.loads(self.run_cli("--as", "alice", "send", "bob", "Question", "--json").stdout)
+        response = json.loads(
+            self.run_cli("--as", "bob", "reply", root["id"], "Answer", "--json").stdout
+        )
+        self.run_cli("--as", "carol", "send", "all", "Unrelated")
+        self.run_cli("--as", "bob", "ack", root["id"])
+        records = [
+            json.loads(line)
+            for line in self.run_cli(
+                "export", "--thread", root["thread"], "--format", "jsonl"
+            ).stdout.splitlines()
+        ]
+        self.assertEqual(records, sorted([root, response], key=lambda m: (m["ts"], m["id"])))
+        output = self.run_cli("export", "--thread", root["thread"]).stdout
+        self.assertIn(f"Thread: {root['thread']}", output)
+        self.assertIn(response["id"], output)
+        self.assertNotIn("Unrelated", output)
+
+    def test_thread_export_allows_missing_root_and_empty_results(self):
+        thread = "0" * 32
+        self.run_cli("export", "--thread", "not-an-id", code=2)
+        self.assertEqual(self.run_cli("export", "--thread", thread, "--format", "jsonl").stdout, "")
+        self.assertIn(f"Thread: {thread}", self.run_cli("export", "--thread", thread).stdout)
+        sent = json.loads(
+            self.run_cli(
+                "--as", "alice", "send", "bob", "Root not synced", "--thread", thread, "--json"
+            ).stdout
+        )
+        self.assertEqual(
+            json.loads(self.run_cli("export", "--thread", thread, "--format", "jsonl").stdout),
+            sent,
+        )
+        self.assertFalse((self.root / "state").exists())
+
+    def test_focused_reads_preserve_scan_warnings(self):
+        sent = json.loads(self.run_cli("--as", "alice", "send", "bob", "Good", "--json").stdout)
+        (self.root / "mail" / "sessions" / self.session / "messages" / "bad.json").write_text("{")
+        result = self.run_cli("show", sent["id"], "--json", code=3)
+        self.assertEqual(json.loads(result.stdout), sent)
+        self.assertIn("warning", result.stderr)
+        result = self.run_cli("export", "--thread", sent["thread"], "--format", "jsonl", code=3)
+        self.assertEqual(json.loads(result.stdout), sent)
+        self.assertIn("warning", result.stderr)
+        result = self.run_cli("export", "--thread", "0" * 32, code=3)
+        self.assertIn("could not be read", result.stdout)
+
     def test_missing_configuration_and_invalid_input(self):
         self.run_cli("send", "bob", "No sender", code=2)
         env = dict(self.env)
