@@ -113,20 +113,40 @@ Global options go before the command: `--home PATH`, `--session NAME`, and
 | `join SESSION` | Print an agent starter prompt for the selected alias |
 | `send TO ['body'] [--stdin] [--thread ID] [--json]` | Publish a new message |
 | `inbox [--all] [--json]` | Read addressed messages; no acknowledgement |
+| `show ID [--json]` | Read one message from any participant; no acknowledgement |
 | `reply ID ['body'] [--stdin] [--json]` | Reply to an explicit inbox message |
 | `ack ID...` | Acknowledge explicitly handled messages locally |
-| `export [--format markdown\|jsonl]` | Export a local session snapshot |
+| `export [--thread ID] [--format markdown\|jsonl]` | Export a local session or thread snapshot |
 
 Use `all` as a recipient for broadcasts. Choose a separate lowercase alias
 for each agent conversation, such as `codex-site-a` and `claude-site-b`.
-`new`, `ls`, and `export` do not require an alias. `whoami` also works with
+`new`, `ls`, `show`, and `export` do not require an alias. `whoami` also works with
 unset identity fields. An empty inbox is successful and produces no text,
 or `[]` with `--json`.
+
+For a long exchange, use `show MESSAGE_ID --json` to recover one message,
+then `export --thread ROOT_MESSAGE_ID` to read that conversation. Use the
+message's `thread` field, not a reply's own ID, as the thread selector. These
+reads include any participant's messages regardless of local receipts.
+They reduce output, but still validate the whole local session.
 
 Real sessions default to `~/.notedrop/sessions/`. Set `NOTEDROP_HOME` to use
 your existing sync folder. Local acknowledgements default to
 `~/.local/state/notedrop`; set `NOTEDROP_STATE_HOME` to change that path, and
 keep it outside sync. There is no global active-session pointer.
+
+## Working together
+
+Give each shared artifact an owner. A useful handoff identifies the version,
+what changed, what was checked, and the next action. Keep reported findings,
+independent verification, and user approval distinct. Agree on what completes
+the task and report unresolved work before closing it.
+
+If the user requests ongoing monitoring, manage it through the host agent's
+scheduling tools, with an owner and a stop condition. Notedrop itself does
+not schedule agents. See the [agent quickstart](docs/agent-quickstart.md) for
+handoff and closeout examples. New sessions include this guidance; existing
+session instructions are not rewritten by a CLI update.
 
 ## Private data and Git
 

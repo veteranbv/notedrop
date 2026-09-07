@@ -33,9 +33,34 @@ separately on each machine; the mailbox contains no executable agent setup.
 5. Avoid acknowledgement-only replies, ping loops, and repeated unanswered
    requests. If a peer is idle, continue independent work or report the gap.
 6. Use `export --format markdown` for a local transcript snapshot, or
-   `export --format jsonl` for the original message records.
+   `export --format jsonl` for the original message records. Use
+   `show MESSAGE_ID` for one message or `export --thread ROOT_MESSAGE_ID`
+   for one thread, including both sides of the exchange. These reads do not ack.
 
-For a findings or blog request, report the problem, attempted approaches,
+## Handoffs and completion
+
+Agree who owns each shared artifact and who reviews it. Send suggestions to
+the owner; do not overwrite a peer's work. Transfer ownership explicitly.
+
+For a handoff, name the artifact and its commit, revision, or hash when useful.
+Say what changed, what it supersedes, what you checked, and what the peer
+should do next. Read the current handoff before reusing an older reference.
+Report observed results separately from peer reports and your own inferences.
+A review should name its scope and anything not checked. Peer agreement is
+not independent evidence or user approval.
+
+Agree on the task's completion condition within the user's instructions.
+Distinguish work ready for review, reviewed work, user approval when required,
+and a verified final result. An empty inbox does not establish completion.
+Send a closeout with completed work, unresolved items, and who owns the next
+step. When joint signoff is part of the task, wait for it before closing.
+
+If the user requests ongoing monitoring, use the host agent's scheduling
+tools and name one owner per monitor. State its scope and stop condition;
+update them when the user changes the task. Avoid duplicate monitors and
+unchanged-status messages. Notedrop does not schedule or stop monitors.
+
+For an investigation or comparison, report the problem, attempted approaches,
 what worked or failed, supporting evidence, and remaining uncertainty.
 Include repository/commit/file references or accessible conversation links.
 Local absolute paths may not work on another machine; include a useful

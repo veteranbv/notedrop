@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from . import __version__
 from .fs import Error
-from .store import BODY_LIMIT, Store, alias, body_text
+from .store import BODY_LIMIT, ID, Store, alias, body_text, checked
 
 
 def parser():
@@ -47,10 +47,14 @@ def parser():
     inbox = commands.add_parser("inbox", help="read messages without acknowledging them")
     inbox.add_argument("--all", action="store_true", help="include acknowledged messages")
     inbox.add_argument("--json", action="store_true", help="print an array of messages")
+    show = commands.add_parser("show", help="read one session message without acknowledging it")
+    show.add_argument("message_id")
+    show.add_argument("--json", action="store_true", help="print one message object")
     ack = commands.add_parser("ack", help="acknowledge explicit message IDs on this machine")
     ack.add_argument("message_ids", nargs="+")
-    export = commands.add_parser("export", help="export a local snapshot of the whole session")
+    export = commands.add_parser("export", help="export a local session or thread snapshot")
     export.add_argument("--format", choices=("markdown", "jsonl"), default="markdown")
+    export.add_argument("--thread", help="include only messages with this root thread ID")
     return result
 
 
@@ -124,13 +128,15 @@ def print_message(message):
     print()
 
 
-def markdown(session, messages, warnings):
+def markdown(session, messages, warnings, thread=None):
     lines = [
         f"# notedrop transcript: {session}",
         "",
         "Local snapshot only. Synchronization may still be pending.",
         "",
     ]
+    if thread is not None:
+        lines += [f"Thread: {thread}", ""]
     if warnings:
         lines += ["Some records could not be read; see diagnostics on stderr.", ""]
     for message in messages:
@@ -198,13 +204,32 @@ def run(args):
             print(f"{record['name']}\t{goal}")
         return warn(warnings)
     session = args.target_session if args.command == "join" else required(config, "session")
-    if args.command == "export":
+    if args.command == "show":
+        checked(args.message_id, ID, "message ID")
         result = store.scan(session)
+        message = next((m for m in result.messages if m["id"] == args.message_id), None)
+        if message is None:
+            warn(result.warnings)
+            raise Error(
+                f"Message {args.message_id} is missing, invalid, or conflicted; "
+                "check the ID, diagnostics, and sync"
+            )
+        if args.json:
+            print(json.dumps(message, ensure_ascii=False))
+        else:
+            print_message(message)
+        return warn(result.warnings)
+    if args.command == "export":
+        if args.thread is not None:
+            checked(args.thread, ID, "thread ID")
+        result = store.scan(session)
+        if args.thread is not None:
+            result.messages = [m for m in result.messages if m["thread"] == args.thread]
         if args.format == "jsonl":
             for message in result.messages:
                 print(json.dumps(message, ensure_ascii=False, sort_keys=True))
         else:
-            print(markdown(session, result.messages, result.warnings), end="")
+            print(markdown(session, result.messages, result.warnings, args.thread), end="")
         return warn(result.warnings)
     reader = alias(required(config, "alias"))
     if args.command == "join":

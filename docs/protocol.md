@@ -117,7 +117,7 @@ against valid, locally available messages addressed to the selected reader.
 If a disk error interrupts a multi-ID ack, a subset may exist; retrying the
 same IDs is safe.
 
-`inbox`, `reply`, and `export` do not acknowledge. Reads do not create state.
+`inbox`, `show`, `reply`, and `export` do not acknowledge. Reads do not create state.
 Changing the local data-root path or local state directory creates a separate
 reader namespace, so messages can appear unread again. Sync only the data
 tree, not the state tree. The CLI rejects state at or beneath the data root;
@@ -126,12 +126,27 @@ it cannot discover whether an external application also syncs your state.
 ## Output and exits
 
 `send` and `reply` print a message ID, or the full record with `--json`.
-`inbox --json` prints an array. `whoami --json` prints values and sources.
+`inbox --json` prints an array. `show ID --json` prints one message object.
+`whoami --json` prints values and sources.
 Diagnostics go to stderr. Terminal inbox output escapes control characters.
 Markdown export indents bodies as literal text, keeping peer Markdown from
 changing transcript structure. JSONL export retains message records. Both
-exports cover the whole locally available session, regardless of receipts.
+exports cover the whole locally available session, regardless of receipts,
+unless `--thread ID` selects only messages whose `thread` field equals ID.
 Source references remain in the bodies; the CLI never fetches them.
+
+`show ID` and `export --thread ID` require full 32-character lowercase hex
+IDs. They need no alias and can read messages between any participants.
+Both use the same complete validated scan as unfiltered export, retaining
+duplicate/conflict handling, ordering, and warnings even for unrelated files.
+Filtering reduces output, not scan cost. A missing root does not prevent a
+thread export from returning replies already present locally.
+
+An empty thread export succeeds: JSONL emits nothing, and Markdown emits a
+snapshot header with the requested thread ID. This does not prove the thread
+is complete or nonexistent remotely. `show` exits 2 with no stdout if its
+message is missing, invalid, or conflicted; scan warnings still go to stderr.
+A valid result with scan warnings returns 3, including an empty thread export.
 
 - 0: operation succeeded, including an empty inbox.
 - 2: invalid input or operational failure. A write error after publication
