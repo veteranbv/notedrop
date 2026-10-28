@@ -25,15 +25,21 @@ class WorkflowPolicyTest(unittest.TestCase):
             )
             self.assertEqual([v.line for v in scan_workflows(root)], [2, 3, 4])
 
-    def test_review_gate_runs_only_trusted_base_code(self):
-        workflow = (WORKFLOWS / "review-gate.yml").read_text(encoding="utf-8")
+    def test_review_gate_runs_only_trusted_default_branch_code(self):
+        workflow = (WORKFLOWS / "review-gate-trusted.yml").read_text(encoding="utf-8")
+        self.assertFalse((WORKFLOWS / "review-gate.yml").exists())
+        self.assertIn("pull_request_target:", workflow)
         # One check suite per head: reopen/ready reruns reuse the existing job.
         self.assertIn("types: [opened, synchronize]", workflow)
-        self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", workflow)
-        self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", workflow)
+        # The evaluator comes from the default-branch tip, never the PR head
+        # or the base branch the PR chose.
+        self.assertIn("ref: ${{ github.sha }}", workflow)
+        self.assertNotIn("ref: ${{ github.event.pull_request.head", workflow)
+        self.assertNotIn("ref: ${{ github.event.pull_request.base.sha }}", workflow)
         self.assertIn("persist-credentials: false", workflow)
         self.assertIn("python3 -I", workflow)
-        self.assertNotIn("write", workflow.split("jobs:")[0])
+        self.assertIn("permissions: {}", workflow)
+        self.assertNotIn(": write", workflow)
 
     def test_review_gate_retrigger_admits_only_codex_bot(self):
         workflow = (WORKFLOWS / "review-gate-retrigger.yml").read_text(encoding="utf-8")
