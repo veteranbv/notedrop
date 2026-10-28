@@ -6,6 +6,8 @@ from pathlib import Path
 
 from check_workflow_pinning import scan_workflows
 
+WORKFLOWS = Path(__file__).resolve().parents[1] / "workflows"
+
 
 class WorkflowPolicyTest(unittest.TestCase):
     def test_rejects_tags_branches_and_missing_refs(self):
@@ -23,11 +25,23 @@ class WorkflowPolicyTest(unittest.TestCase):
             )
             self.assertEqual([v.line for v in scan_workflows(root)], [2, 3, 4])
 
-    def test_review_gate_executes_base_script_without_checkout_credentials(self):
-        workflow = (Path(__file__).parents[1] / "workflows/review-gate.yml").read_text()
+    def test_review_gate_runs_only_trusted_base_code(self):
+        workflow = (WORKFLOWS / "review-gate.yml").read_text(encoding="utf-8")
+        # One check suite per head: reopen/ready reruns reuse the existing job.
+        self.assertIn("types: [opened, synchronize]", workflow)
         self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", workflow)
+        self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", workflow)
         self.assertIn("persist-credentials: false", workflow)
-        self.assertNotIn("pull_request.head.sha }}\n          persist", workflow)
+        self.assertIn("python3 -I", workflow)
+        self.assertNotIn("write", workflow.split("jobs:")[0])
+
+    def test_review_gate_retrigger_admits_only_codex_bot(self):
+        workflow = (WORKFLOWS / "review-gate-retrigger.yml").read_text(encoding="utf-8")
+        self.assertEqual(workflow.count("user.login == 'chatgpt-codex-connector[bot]'"), 2)
+        self.assertNotIn("github.repository_owner", workflow)
+        self.assertNotIn("actions/checkout", workflow)
+        for body in ("comment.body", "review.body"):
+            self.assertNotIn(f"${{{{ github.event.{body} }}}}", workflow)
 
 
 if __name__ == "__main__":
