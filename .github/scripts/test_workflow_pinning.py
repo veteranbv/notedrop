@@ -37,7 +37,11 @@ class WorkflowPolicyTest(unittest.TestCase):
 
     def test_review_gate_retrigger_admits_only_codex_bot(self):
         workflow = (WORKFLOWS / "review-gate-retrigger.yml").read_text(encoding="utf-8")
-        self.assertEqual(workflow.count("user.login == 'chatgpt-codex-connector[bot]'"), 2)
+        triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+        # issue_comment only: a pull_request_review trigger would run the PR's copy.
+        self.assertIn("issue_comment:", triggers)
+        self.assertNotIn("pull_request_review", triggers)
+        self.assertEqual(workflow.count("user.login == 'chatgpt-codex-connector[bot]'"), 1)
         self.assertNotIn("github.repository_owner", workflow)
         self.assertNotIn("actions/checkout", workflow)
         for body in ("comment.body", "review.body"):

@@ -79,8 +79,13 @@ Finish and test a coherent change locally, then run a local code and security
 review before asking for remote review. The owner requests Codex review for
 the exact pushed head. Address every finding on the same pull request and
 resolve its thread; after three rounds that still find substantive issues,
-stop and reconsider the change. Required checks are `ci` and `review-gate`;
-`review-gate` runs only base-branch code with a read-only token. No AI
+stop and reconsider the change. Required checks are `ci` and `review-gate`.
+`review-gate` comes from `.github/workflows/review-gate-trusted.yml`
+(`pull_request_target`): it runs the default branch's copy with a read-only
+token and never runs pull request code, so a pull request cannot rewrite it.
+Protection pins the check to the GitHub Actions app, not that workflow, so a
+pull request could still add a same-named job; merge only through the owner's
+qualification tooling, which counts the trusted run alone. No AI
 attribution in commits, titles, or descriptions, and commits come from a
 person's identity, not an app or bot account; `review-gate` rejects both.
 
