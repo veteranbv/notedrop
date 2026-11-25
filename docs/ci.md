@@ -7,7 +7,7 @@ Using the CLI does not require GitHub or a Codex account.
 ## Local checks
 
 Run from the repository root with Python 3.11+, Git, Ruff 0.12.7, actionlint
-1.7.12, and ShellCheck available:
+1.7.12, zizmor 1.31.1, and ShellCheck available:
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -16,6 +16,7 @@ python3 .github/scripts/check_workflow_pinning.py
 ruff check notedrop tests .github/scripts
 ruff format --check notedrop tests .github/scripts
 actionlint
+zizmor --offline .github/workflows
 ```
 
 Product tests use temporary mailboxes and fictional data. Review-gate tests
@@ -26,7 +27,11 @@ fixtures.
 Ruff checks Python errors, import ordering, common bug patterns, and formatting.
 It does not perform static type checking. Actionlint validates workflows and
 uses ShellCheck for embedded shell. The action-reference checker enforces
-full commit SHAs for the external actions used in these workflows.
+full commit SHAs for the external actions used in these workflows and fails
+on `pull_request_target` in any workflow other than the trusted review gate.
+zizmor audits the workflows offline for privileged triggers, injection,
+credential persistence and permissions; an intentional finding carries an
+inline `# zizmor: ignore[...]` with its reason.
 
 ## Required checks
 
