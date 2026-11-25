@@ -25,6 +25,31 @@ class WorkflowPolicyTest(unittest.TestCase):
             )
             self.assertEqual([v.line for v in scan_workflows(root)], [2, 3, 4])
 
+    def test_pull_request_target_only_in_trusted_gate(self):
+        files = {
+            "review-gate-trusted.yml": "on:\n  pull_request_target:\n    types: [opened]\n",
+            "block.yml": "name: x\non:\n  push:\n  pull_request_target:\njobs: {}\n",
+            "inline.yml": "on: [push, pull_request_target]\n",
+            "quoted.yml": "'on':\n  - 'pull_request_target'\n",
+            "mention.yml": (
+                "# pull_request_target is not used here\n"
+                "on:\n"
+                "  pull_request:  # not pull_request_target\n"
+                "jobs:\n"
+                "  a:\n"
+                "    if: github.event_name != 'pull_request_target'\n"
+            ),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, text in files.items():
+                (root / name).write_text(text, encoding="utf-8")
+            found = sorted((v.path.name, v.line) for v in scan_workflows(root))
+        self.assertEqual(found, [("block.yml", 4), ("inline.yml", 1), ("quoted.yml", 2)])
+
+    def test_repository_workflows_pass(self):
+        self.assertEqual(scan_workflows(WORKFLOWS), [])
+
     def test_review_gate_runs_only_trusted_default_branch_code(self):
         workflow = (WORKFLOWS / "review-gate-trusted.yml").read_text(encoding="utf-8")
         self.assertFalse((WORKFLOWS / "review-gate.yml").exists())
